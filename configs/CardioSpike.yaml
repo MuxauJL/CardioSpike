@@ -1,0 +1,72 @@
+#### general settings
+gpu_ids: [ 0 ]
+classes: ["NOCOVID", "COVID"]
+num_classes: &num_classes 1
+threshold: 0.5
+
+#### datasets
+datasets:
+  mode: CardioSpike
+  train:
+    dataset_args:
+      path_to_csv: /home/malchul/work/CadrioSpike/data/train.csv
+    n_workers: 10
+    batch_size: 16
+    augs_args: null
+
+
+  val:
+    dataset_args:
+      path_to_csv: /home/malchul/work/CadrioSpike/data/train.csv
+    n_workers: 5
+    batch_size: 1
+    augs_args: null
+
+network:
+  model: SimpleCNN
+  input_channels: 1
+  output_channels: *num_classes
+  num_convs: 20
+
+# Maps output from dataset to model args
+input_keys:
+  ampl: x
+  mask: mask
+
+exp_name: ""
+#### path
+checkpoint_path: null
+
+#### training settings: learning rate scheme, loss
+train:
+
+  scheduler_params:
+    scheduler: ExponentialLR  # Registry keyword for scheduler name
+    gamma: 0.9802265618354915  # Reduces by 20
+
+  optimizer_params:
+    optimizer: Adam
+    lr: !!float 2e-3
+    weight_decay: 0
+    betas: [ 0.9, 0.999 ]
+
+  loss_args:
+    criterion: WeightedBCEWithLogits
+    pos_weight: 6.0
+
+  epoches: 150
+
+  log_freq: 10
+  img_log_freq: 400
+  val_freq: 5
+  val_steps_limit: 1.0
+  train_steps_limit: 1000
+
+
+  precision: 32
+  gradient_clip_val: 0
+
+
+hydra:
+  run:
+    dir: outputs/${now:%Y-%m-%d}/${now:%H-%M-%S}_${exp_name}
