@@ -44,6 +44,21 @@ class CovidCardioSpikeExperiment(pl.LightningModule):
         return {'optimizer': optimizer,
                 'lr_scheduler': {'scheduler': self.get_scheduler(optimizer), 'interval': 'epoch'}}
 
+    # Extract mask where falses will be more than trues by coef times
+    def negative_sampling_mask(self, labels, mask, coef=3):
+        with torch.no_grad():
+            N,C,H = labels.shape
+            positives = torch.sum(labels, dim=[-1,-2])
+            assert len(positives.shape) == 1, positives.shape
+            positives_mask = labels[:,:, 0] > 0.5
+            new_mask = torch.zeros_like(mask)
+            for i in range(N):
+                elements = mask[i].sum()
+                sampling_matrix = torch.rand(elements).type_as(labels) < coef * positives[i] / elements
+                new_mask[i, :elements] = sampling_matrix
+                new_mask[i] = new_mask[i] | positives_mask[i]
+        return new_mask
+
     def create_model(self):
         opt = self.hparams
         print('opt', opt.keys())
@@ -56,7 +71,8 @@ class CovidCardioSpikeExperiment(pl.LightningModule):
 
     def training_step(self, batch, batch_idx):
         output = self(batch)
-        loss = self.loss(output[batch['mask_bool']], batch['target'][batch['mask_bool']])
+        mask = self.negative_sampling_mask(batch['target'], batch['mask_bool'])
+        loss = self.loss(output[mask], batch['target'][mask])
 
         log = {'loss': loss}
         return {'loss': loss, 'log': log, 'progress_bar': log}
@@ -64,13 +80,13 @@ class CovidCardioSpikeExperiment(pl.LightningModule):
     def validation_step(self, batch, batch_nb):
         if self.num_classes > 1:
             scores = self(batch)
-            pred = torch.argmax(scores, dim=1)
+            pred = torch.argmax(scores, dim=2)
 
-            scores = torch.softmax(scores, 1)
+            scores = torch.softmax(scores, 2)
         else:
             result = torch.sigmoid(self(batch))
             scores = result
-            pred = (result.squeeze(1) > self.hparams.threshold).int()
+            pred = (result.squeeze(2) > self.hparams.threshold).int()
 
         labels = batch['target']
         mask = batch['mask_bool']

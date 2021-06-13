@@ -68,6 +68,7 @@ class CardioSpikeDataset(Dataset):
             else:
                 result[key] = default_collate(batch)
         result['mask_bool'] = result['mask'] > 0.5
+        # id - B, time - BxTx1, ampl - BxTx1,  target - BxTx1, mask - BxT, mask_bool - BxT
         return result
 
 if __name__ == '__main__':
