@@ -9,7 +9,7 @@ datasets:
   mode: CardioSpike
   train:
     dataset_args:
-      path_to_csv: /home/malchul/work/CadrioSpike/data/train.csv
+      path_to_csv: /home/malchul/work/CadrioSpike/data/train_split.csv
     n_workers: 10
     batch_size: 16
     augs_args: null
@@ -17,7 +17,7 @@ datasets:
 
   val:
     dataset_args:
-      path_to_csv: /home/malchul/work/CadrioSpike/data/train.csv
+      path_to_csv: /home/malchul/work/CadrioSpike/data/val_split.csv
     n_workers: 5
     batch_size: 1
     augs_args: null
