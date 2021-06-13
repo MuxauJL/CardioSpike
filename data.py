@@ -26,16 +26,21 @@ class CardioSpikeDataset(Dataset):
         y = torch.tensor(data_by_id.y.to_numpy())
         # t = torch.tensor(data_by_id.time.to_numpy())
         # return torch.stack((t, x), 1), y
-        return x, y
+        t = data_by_id.time.to_numpy()
+        time_diff = torch.zeros(len(t))
+        for i in range(1, len(t)):
+            time_diff[i] = t[i] - t[i - 1]
+        return torch.stack((time_diff, x), 1), y
+        # return x, y
 
 def collate_fn(batched_data):
     max_len = max([len(y) for x, y in batched_data])
     batch_size = len(batched_data)
-    batched_x = torch.zeros(max_len, batch_size, 1, dtype=torch.float32)
+    batched_x = torch.zeros(max_len, batch_size, 2, dtype=torch.float32)
     batched_y = torch.full((max_len, batch_size), -1, dtype=torch.float32)
     for batch_idx, (x, y) in enumerate(batched_data):
         assert len(x) == len(y)
-        batched_x[:len(x), batch_idx, 0] = x
+        batched_x[:len(x), batch_idx, :] = x
         batched_y[:len(y), batch_idx] = y
 
     return batched_x, batched_y
@@ -43,11 +48,11 @@ def collate_fn(batched_data):
 def conv_collate_fn(batched_data):
     max_len = max([len(y) for x, y in batched_data])
     batch_size = len(batched_data)
-    batched_x = torch.zeros(batch_size, 1, max_len, dtype=torch.float32)
+    batched_x = torch.zeros(batch_size, 2, max_len, dtype=torch.float32)
     batched_y = torch.full((max_len, batch_size), -1, dtype=torch.float32)
     for batch_idx, (x, y) in enumerate(batched_data):
         assert len(x) == len(y)
-        batched_x[batch_idx, 0, :len(x)] = x
+        batched_x[batch_idx, :, :len(x)] = x.T
         batched_y[:len(y), batch_idx] = y
 
     return batched_x, batched_y

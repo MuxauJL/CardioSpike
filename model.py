@@ -7,7 +7,7 @@ class BiLSTMDetector(nn.Module):
         super().__init__()
 
         self.encoder = nn.Sequential(
-            nn.Conv1d(1, conv_out_channels, kernel_size=3, stride=1, padding=1),
+            nn.Conv1d(2, conv_out_channels, kernel_size=3, stride=1, padding=1),
             nn.ReLU(inplace=True),
         )
         self.bi_lstm = nn.LSTM(input_size=conv_out_channels, hidden_size=lstm_hidden_dim, num_layers=lstm_layers_count,

@@ -1,3 +1,4 @@
+import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
 import torch
@@ -89,7 +90,7 @@ def compute_loss(predictions, targets):
     return loss
 
 
-def train_model(model, train_loader, val_loader, optimizer, num_epochs=1):
+def train_model(model, train_loader, val_loader, optimizer, num_epochs=1, scheduler=None):
     loss_history = []
     train_history = []
     val_history = []
@@ -130,6 +131,12 @@ def train_model(model, train_loader, val_loader, optimizer, num_epochs=1):
         val_history.append(f1)
         print("Epoch %d: average loss: %f, val f1: %f" % (
             epoch + 1, ave_loss, f1))
+
+        if scheduler:
+            if isinstance(scheduler, optim.lr_scheduler.ReduceLROnPlateau):
+                scheduler.step(loss_history[-1])
+            else:
+                scheduler.step()
 
     return loss_history, train_history, val_history
 
@@ -182,6 +189,13 @@ if __name__ == '__main__':
     validation_fraction = .2
     val_split = int(np.floor(validation_fraction * len(train_dataset)))
     val_indices, train_indices = indices[:val_split], indices[val_split:]
+    # np.save('val.npy', val_indices)
+    # np.save('train.npy', train_indices)
+    # import json
+    # with open("idx_to_id.json", "w") as write_file:
+    #     json.dump(train_dataset.idx_to_id, write_file)
+    # exit(0)
+
     train_sampler = SubsetRandomSampler(train_indices)
     val_sampler = SubsetRandomSampler(val_indices)
     train_loader = torch.utils.data.DataLoader(train_dataset, batch_size=batch_size,
@@ -214,8 +228,10 @@ if __name__ == '__main__':
     for lstm_hidden_dim in lstm_hidden_dims:
         model = BiLSTMDetector(lstm_hidden_dim=lstm_hidden_dim).cuda()
         optimizer = optim.AdamW(model.parameters())
+        scheduler = optim.lr_scheduler.ReduceLROnPlateau(optimizer)
 
-        loss_history, train_history, val_history = train_model(model, train_loader, val_loader, optimizer, num_epochs=20)
+        loss_history, train_history, val_history = train_model(model, train_loader, val_loader, optimizer,
+                                                               num_epochs=20, scheduler=scheduler)
 
         best_score = max(val_history)
         print(f'best score with {lstm_hidden_dims} channels: {best_score}')
