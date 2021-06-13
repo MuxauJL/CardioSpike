@@ -35,6 +35,7 @@ input_keys:
   mask: mask
   time: time
   ampl_diff: x_diff
+  angle: angle
 
 exp_name: ""
 #### path
