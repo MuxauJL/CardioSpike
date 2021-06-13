@@ -32,7 +32,7 @@ class SimpleLayerCNN(nn.Module):
 
     def forward(self, x, mask):
         out = self.conv(x)
-        #out = self.norm(out)
+        out = self.norm(out)
         out = self.act(out)
         out = out * mask
         return out
