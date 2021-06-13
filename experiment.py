@@ -56,7 +56,7 @@ class CovidCardioSpikeExperiment(pl.LightningModule):
 
     def training_step(self, batch, batch_idx):
         output = self(batch)
-        loss = self.loss(output, batch['target'])
+        loss = self.loss(output[batch['mask_bool']], batch['target'][batch['mask_bool']])
 
         log = {'loss': loss}
         return {'loss': loss, 'log': log, 'progress_bar': log}
