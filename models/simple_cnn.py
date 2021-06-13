@@ -28,7 +28,7 @@ class SimpleLayerCNN(nn.Module):
         self.conv = nn.Conv1d(self.in_channel, self.out_channel, self.kernel_size, padding=self.kernel_size // 2,
                               bias=self.bias)
         self.norm = LayerNorm(self.out_channel)
-        self.act = nn.LeakyReLU(inplace=True)
+        self.act = nn.GELU()
 
     def forward(self, x, mask):
         out = self.conv(x)
@@ -45,7 +45,7 @@ class SimpleCNN(nn.Module):
         self.start_channels = start_channels
         self.num_convs = num_convs
         self.output_channels = output_channels
-        self.input_channels = input_channels
+        self.input_channels = input_channels + 1
 
         channels = [self.input_channels, *[round(self.start_channels * multiplier ** i) for i in range(self.num_convs)]]
 
@@ -56,7 +56,8 @@ class SimpleCNN(nn.Module):
 
         self.last_conv = nn.Conv1d(channels[-1], self.output_channels, 5, padding=2)
 
-    def forward(self, x, mask):
+    def forward(self, x, time, mask):
+        x = torch.cat([x, time], dim=2)
         x = x.transpose(2, 1)
         mask = mask.unsqueeze(1)
         for module in self.hidden_layers:

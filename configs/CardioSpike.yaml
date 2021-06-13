@@ -32,6 +32,7 @@ network:
 input_keys:
   ampl: x
   mask: mask
+  time: time
 
 exp_name: ""
 #### path
