@@ -37,7 +37,7 @@ class CardioSpikeDataset(Dataset):
         time = np.expand_dims(series_from_data[self.time_column].to_numpy(), 1)
         ampl = np.expand_dims(series_from_data[self.x_column].to_numpy(), 1)
 
-        return {'id': id, 'time': time, 'ampl': ampl, 'target': target}
+        return {'id': id, 'time': time, 'ampl': ampl, 'target': target, 'time_unormalized': time, 'ampl_unormalized': ampl}
 
     def __len__(self):
         return len(self.ids)

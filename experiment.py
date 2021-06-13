@@ -17,6 +17,7 @@ from transforms.transform import get_test_transform, get_train_transform
 import torch
 import sklearn.metrics as metrics
 from utils.confusion_matrix import plot_confusion_matrix, render_figure_to_tensor
+from utils.vis_utils import log_image
 
 
 class CovidCardioSpikeExperiment(pl.LightningModule):
@@ -86,7 +87,10 @@ class CovidCardioSpikeExperiment(pl.LightningModule):
         else:
             result = torch.sigmoid(self(batch))
             scores = result
-            pred = (result.squeeze(2) > self.hparams.threshold).int()
+            pred = (result > self.hparams.threshold).int()
+
+        if self.hparams.train.use_plt:
+            log_image(pred, batch, batch_nb)
 
         labels = batch['target']
         mask = batch['mask_bool']

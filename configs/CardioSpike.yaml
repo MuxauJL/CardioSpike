@@ -26,7 +26,8 @@ network:
   model: SimpleCNN
   input_channels: 1
   output_channels: *num_classes
-  num_convs: 20
+  num_convs: 10
+  multiplier: 1.4
 
 # Maps output from dataset to model args
 input_keys:
@@ -57,9 +58,11 @@ train:
 
   epoches: 150
 
+  use_plt: True
+
   log_freq: 10
   img_log_freq: 400
-  val_freq: 5
+  val_freq: 10
   val_steps_limit: 1.0
   train_steps_limit: 1000
 
