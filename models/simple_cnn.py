@@ -45,7 +45,7 @@ class SimpleCNN(nn.Module):
         self.start_channels = start_channels
         self.num_convs = num_convs
         self.output_channels = output_channels
-        self.input_channels = input_channels + 1
+        self.input_channels = input_channels + 1 + 1 # + x_diff + time
 
         channels = [self.input_channels, *[round(self.start_channels * multiplier ** i) for i in range(self.num_convs)]]
 
@@ -56,8 +56,8 @@ class SimpleCNN(nn.Module):
 
         self.last_conv = nn.Conv1d(channels[-1], self.output_channels, 5, padding=2)
 
-    def forward(self, x, time, mask):
-        x = torch.cat([x, time], dim=2)
+    def forward(self, x, x_diff, time, mask):
+        x = torch.cat([x, time, x_diff], dim=2)
         x = x.transpose(2, 1)
         mask = mask.unsqueeze(1)
         for module in self.hidden_layers:

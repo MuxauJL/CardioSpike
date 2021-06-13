@@ -15,6 +15,9 @@ def norm_time(data):
     data['time'] = data['time'] / TIME_NORMALIZER
     return data
 
+def add_ampl_diff(data):
+    data['ampl_diff'] = np.concatenate([np.array([[0.0]]), data['ampl'][1:] - data['ampl'][:-1]])
+    return data
 
 def apply_iteratively(functions):
     def _inner_func(data):
@@ -25,8 +28,8 @@ def apply_iteratively(functions):
     return _inner_func
 
 def get_test_transform(opt):
-    return apply_iteratively([norm, norm_time])
+    return apply_iteratively([norm, norm_time, add_ampl_diff])
 
 
 def get_train_transform(opt):
-    return apply_iteratively([norm, norm_time])
+    return apply_iteratively([norm, norm_time, add_ampl_diff])
