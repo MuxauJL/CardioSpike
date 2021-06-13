@@ -23,12 +23,15 @@ datasets:
     augs_args: null
 
 network:
-  model: BiLSTMDetector
-  lstm_hidden_dim: 128
+  model: SimpleCNN
+  input_channels: 1
+  output_channels: *num_classes
+  num_convs: 20
 
 # Maps output from dataset to model args
 input_keys:
-  ampl: inputs
+  ampl: x
+  mask: mask
 
 exp_name: ""
 #### path
@@ -43,7 +46,7 @@ train:
 
   optimizer_params:
     optimizer: AdamW
-    lr: !!float 2e-3
+    lr: !!float 2e-4
     weight_decay: 0
     betas: [ 0.9, 0.999 ]
 

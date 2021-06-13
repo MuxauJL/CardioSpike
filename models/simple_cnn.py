@@ -28,7 +28,7 @@ class SimpleLayerCNN(nn.Module):
         self.conv = nn.Conv1d(self.in_channel, self.out_channel, self.kernel_size, padding=self.kernel_size // 2,
                               bias=self.bias)
         self.norm = LayerNorm(self.out_channel)
-        self.act = nn.ReLU(inplace=True)
+        self.act = nn.LeakyReLU(inplace=True)
 
     def forward(self, x, mask):
         out = self.conv(x)
