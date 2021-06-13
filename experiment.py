@@ -75,8 +75,9 @@ class CovidCardioSpikeExperiment(pl.LightningModule):
         mask = self.negative_sampling_mask(batch['target'], batch['mask_bool'])
         loss = self.loss(output[mask], batch['target'][mask])
 
-        log = {'loss': loss}
-        return {'loss': loss, 'log': log, 'progress_bar': log}
+        self.log('loss', loss)
+
+        return {'loss': loss}
 
     def validation_step(self, batch, batch_nb):
         if self.num_classes > 1:
