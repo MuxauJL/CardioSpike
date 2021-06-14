@@ -9,7 +9,7 @@ datasets:
   mode: ECGHeartbeatCategorization
   train:
     dataset_args:
-      path_to_csv: /home/malchul/work/CadrioSpike/data/pretrain/mitbih_train.csv
+      path_to_csv: /home/malchul/work/CadrioSpike/data/pretrain/mitbih_train_split.csv
     n_workers: 10
     batch_size: 16
     augs_args: null
@@ -17,9 +17,9 @@ datasets:
 
   val:
     dataset_args:
-      path_to_csv: /home/malchul/work/CadrioSpike/data/pretrain/mitbih_test.csv
+      path_to_csv: /home/malchul/work/CadrioSpike/data/pretrain/mitbih_test_split.csv
     n_workers: 5
-    batch_size: 1
+    batch_size: 10
     augs_args: null
 
 network:
@@ -74,4 +74,4 @@ train:
 
 hydra:
   run:
-    dir: outputs/${now:%Y-%m-%d}/${now:%H-%M-%S}_pretrain_{datasets.mode}_${exp_name}
+    dir: outputs/${now:%Y-%m-%d}/${now:%H-%M-%S}_pretrain_${datasets.mode}_${exp_name}

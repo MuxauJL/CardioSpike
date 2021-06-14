@@ -131,8 +131,8 @@ class CovidCardioSpikeExperiment(pl.LightningModule):
     def val_dataloader(self):
         val_params = self.hparams.datasets.val
         return DataLoader(self.val_dataset,
-                          batch_size=1,
-                          shuffle=False,
+                          batch_size=val_params.batch_size,
+                          shuffle=self.hparams.train.val_steps_limit < 1.0 or type(self.hparams.train.val_steps_limit < 1.0) == int,
                           drop_last=False,
                           num_workers=1, collate_fn=self.val_dataset.collate_fn)
 
