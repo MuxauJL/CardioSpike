@@ -57,6 +57,7 @@ train:
   loss_args:
     criterion: WeightedBCEWithLogits
     pos_weight: 6.0
+    clip: 0.0001
 
   epoches: 500
 
