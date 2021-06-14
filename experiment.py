@@ -30,6 +30,7 @@ class CovidCardioSpikeExperiment(pl.LightningModule):
 
         self.num_classes = self.hparams.num_classes
         self.create_model()
+        print(self.net)
         self.loss = registry.CRITERION.get_from_params(**self.hparams.train.loss_args)
 
     def get_scheduler(self, optimizer):

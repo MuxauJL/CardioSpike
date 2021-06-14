@@ -18,23 +18,25 @@ class LayerNorm(nn.Module):
 
 
 class SimpleLayerCNN(nn.Module):
-    def __init__(self, in_channel, out_channel, kernel_size=3, bias=False):
+    def __init__(self, in_channels, out_channels, bias=False):
         super().__init__()
-        self.bias = bias
-        self.kernel_size = kernel_size
-        self.out_channel = out_channel
-        self.in_channel = in_channel
-
-        self.conv = nn.Conv1d(self.in_channel, self.out_channel, self.kernel_size, padding=self.kernel_size // 2,
-                              bias=self.bias)
-        self.norm = LayerNorm(self.out_channel)
-        self.act = nn.GELU()
+        self.conv1 = nn.Conv1d(in_channels, out_channels, kernel_size=3, padding=1, bias=bias)
+        self.norm1 = LayerNorm(out_channels)
+        self.act1 = nn.GELU()
+        self.conv2 = nn.Conv1d(out_channels, out_channels, kernel_size=3, padding=1, bias=bias)
+        self.norm2 = LayerNorm(out_channels)
+        self.act2 = nn.GELU()
 
     def forward(self, x, mask):
-        out = self.conv(x)
-        out = self.norm(out)
-        out = self.act(out)
+        out = self.conv1(x)
+        out = self.norm1(out)
+        out = self.act1(out)
         out = out * mask
+        save_out = out
+        out = self.conv2(out)
+        out = self.norm2(out)
+        out = self.act2(out)
+        out = (out * mask) + save_out
         return out
 
 
