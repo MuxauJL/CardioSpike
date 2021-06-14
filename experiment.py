@@ -117,14 +117,21 @@ class CovidCardioSpikeExperiment(pl.LightningModule):
 
 
     def validation_epoch_end(self, outputs):
-        f1_scores = []
+        concated_pred = []
+        concated_target = []
         for batch in outputs:
             pred, score, target, mask = batch['pred'], batch['score'], batch['target'], batch['mask']
             for i, el in enumerate(pred):
-                f1_score = metrics.f1_score(target[i][mask[i]].reshape(-1), el[mask[i]].reshape(-1), pos_label=1, average='binary' if self.num_classes == 1 else 'micro')
-                f1_scores.append(f1_score)
+                concated_pred.append(el[mask[i]].reshape(-1))
+                concated_target.append(target[i][mask[i]].reshape(-1))
 
-        self.log('f1_score', np.mean(f1_scores))
+        concated_pred = np.concatenate(concated_pred)
+        concated_target = np.concatenate(concated_target)
+
+        f1_score = metrics.f1_score(concated_target, concated_pred, pos_label=1, average='binary' if self.num_classes == 1 else 'micro')
+
+
+        self.log('f1_score', f1_score)
 
     def prepare_data(self):
         mode = self.hparams.datasets.mode
