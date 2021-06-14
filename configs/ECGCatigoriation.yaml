@@ -23,11 +23,9 @@ datasets:
     augs_args: null
 
 network:
-  model: SimpleCNN
-  input_channels: 1
-  output_channels: *num_classes
-  num_convs: 15
-  multiplier: 1.2
+  model: UNet
+  n_channels: 1
+  n_classes: *num_classes
 
 # Maps output from dataset to model args
 input_keys:

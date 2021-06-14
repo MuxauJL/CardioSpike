@@ -90,6 +90,10 @@ class CovidCardioSpikeExperiment(pl.LightningModule):
         return {'loss': loss}
 
     def validation_step(self, batch, batch_nb):
+
+        def extract_int_numpy(tensor):
+            return tensor.detach().cpu().int().numpy()
+
         if self.num_classes > 1:
             scores = self(batch)
             pred = torch.argmax(scores, dim=2, keepdim=True)
@@ -107,8 +111,10 @@ class CovidCardioSpikeExperiment(pl.LightningModule):
             scores = result
             pred = (result > self.hparams.threshold).int()
             labels = batch['target']
+
+
         if self.hparams.train.use_plt:
-            log_image(pred, batch, batch_nb)
+            log_image(result=extract_int_numpy(pred), target=extract_int_numpy(labels), time=extract_int_numpy(batch['time_unormalized']), ampl=extract_int_numpy(batch['ampl_unormalized']), id=batch["id"])
 
 
         mask = batch['mask_bool']
