@@ -27,7 +27,7 @@ class ECGHeartbeatCategorization(Dataset):
     # Convert pandas series to dict
     def conver_to_dict(self, series_from_data, eps= 1e-6):
         ampl, target, id = series_from_data
-        ampl = (ampl[ampl > eps] * 2 - 1) * (O_75 - O_25) + MEDIAN
+        ampl = (ampl[(1 > ampl) & (ampl > eps)] * 2 - 1) * (O_75 - O_25) + MEDIAN
         if len(ampl) < self.min_len:
             print('value was with small len')
             return self.__getitem__(np.random.randint(0, self.__len__(), 1)[0])

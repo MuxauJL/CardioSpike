@@ -39,6 +39,7 @@ input_keys:
 
 exp_name: ""
 #### path
+pretrained_checkpoint_path: null
 checkpoint_path: null
 
 #### training settings: learning rate scheme, loss
