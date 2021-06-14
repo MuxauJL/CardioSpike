@@ -15,10 +15,11 @@ class ECGHeartbeatCategorization(Dataset):
         self.transforms = transforms
 
         self.path_to_csv = path_to_csv
-        numpy_data = pd.read_csv(self.path_to_csv, squeeze=True, header=None, names=[i for i in range(188)]).to_numpy()
+        numpy_data = pd.read_csv(self.path_to_csv).to_numpy()
         self.data, self.target = numpy_data[:, :-1], numpy_data[:, -1]
         self.target = self.target.astype(np.int)
         self.num_classes = self.target.max() + 1
+        self.min_len = 15
 
     def get_series_from_data(self, data, target, idx):
         return data[idx, :], target[idx], idx
@@ -27,6 +28,9 @@ class ECGHeartbeatCategorization(Dataset):
     def conver_to_dict(self, series_from_data, eps= 1e-6):
         ampl, target, id = series_from_data
         ampl = (ampl[ampl > eps] * 2 - 1) * (O_75 - O_25) + MEDIAN
+        if len(ampl) < self.min_len:
+            print('value was with small len')
+            return self.__getitem__(np.random.randint(0, self.__len__(), 1)[0])
         target = np.ones(len(ampl), dtype=np.int) * target
         one_hot_target = np.zeros((*ampl.shape, self.num_classes), dtype=np.float32)
         one_hot_target[np.arange(target.shape[0]), target] = 1

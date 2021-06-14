@@ -58,6 +58,7 @@ train:
     criterion: CrossEntropyLoss
 
   epoches: 500
+  use_negative_sampling: False
 
   use_plt: True
 

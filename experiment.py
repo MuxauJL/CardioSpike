@@ -72,11 +72,17 @@ class CovidCardioSpikeExperiment(pl.LightningModule):
 
     def training_step(self, batch, batch_idx):
         output = self(batch)
-        mask = self.negative_sampling_mask(batch['target'], batch['mask_bool'])
         if self.num_classes == 1:
+            if self.hparams.train.use_negative_sampling:
+                mask = self.negative_sampling_mask(batch['target'], batch['mask_bool'])
+            else:
+                mask = batch['mask_bool']
             loss = self.loss(output[mask], batch['target'][mask])
         else:
-            loss = self.loss(output[mask], torch.argmax(batch['target'], dim=-1)[mask])
+            assert self.hparams.train.use_negative_sampling == False
+            target = torch.argmax(batch['target'], dim=-1)[batch['mask_bool']]
+            #print(output[batch['mask_bool']].shape, target[(target < 0) | (target >= self.num_classes)], target.shape, torch.argmax(batch['target'], dim=-1).shape)
+            loss = self.loss(output[batch['mask_bool']], target)
 
         self.log('loss', loss)
 
@@ -90,7 +96,10 @@ class CovidCardioSpikeExperiment(pl.LightningModule):
             scores = torch.softmax(scores, 2)
         else:
             result = self(batch)
-            mask = self.negative_sampling_mask(batch['target'], batch['mask_bool'])
+            if self.hparams.train.use_negative_sampling:
+                mask = self.negative_sampling_mask(batch['target'], batch['mask_bool'])
+            else:
+                mask = batch['mask_bool']
             loss = self.loss(result[mask], batch['target'][mask])
             self.log('val_loss', loss, prog_bar=True)
             result = torch.sigmoid(result)

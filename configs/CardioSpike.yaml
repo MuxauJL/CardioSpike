@@ -60,6 +60,8 @@ train:
     clip: 0.0001
 
   epoches: 500
+  use_negative_sampling: True
+
 
   use_plt: True
 
