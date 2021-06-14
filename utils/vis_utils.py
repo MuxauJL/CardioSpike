@@ -1,6 +1,10 @@
 from matplotlib import pyplot as plt
 import os
 
+
+COLORS = ['#008B8B', '#DC143C', '#FFEBCD', '#8A2BE2', '#7FFF00']
+
+
 def extract_sequences(ampl, labels, time):
     subdata = []
     cur_label = labels[0]
@@ -30,7 +34,7 @@ def log_image(result, batch, batch_nb):
                                          batch['target'].detach().cpu().int().numpy()[i, :, 0],
                                          batch['time_unormalized'].detach().cpu().int().numpy()[i, :, 0])
         for sdata in subdata:
-            color = ['#008B8B', '#DC143C'][sdata['target'][0]]
+            color = COLORS[sdata['target'][0]]
             plt.plot(sdata['time'], sdata['ampl'], color=color)
         plt.title('GT')
         plt.subplot(212)
@@ -38,7 +42,7 @@ def log_image(result, batch, batch_nb):
                                          result.detach().cpu().int().numpy()[i, :, 0],
                                          batch['time_unormalized'].detach().cpu().int().numpy()[i, :, 0])
         for sdata in subdata:
-            color = ['#008B8B', '#DC143C'][sdata['target'][0]]
+            color = COLORS[sdata['target'][0]]
             plt.plot(sdata['time'], sdata['ampl'], color=color)
         plt.title('Pred')
         plt.savefig(f'preds/img_{batch["id"][i].item()}.jpg')

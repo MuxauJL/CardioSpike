@@ -73,7 +73,10 @@ class CovidCardioSpikeExperiment(pl.LightningModule):
     def training_step(self, batch, batch_idx):
         output = self(batch)
         mask = self.negative_sampling_mask(batch['target'], batch['mask_bool'])
-        loss = self.loss(output[mask], batch['target'][mask])
+        if self.num_classes == 1:
+            loss = self.loss(output[mask], batch['target'][mask])
+        else:
+            loss = self.loss(output[mask], torch.argmax(batch['target'], dim=-1)[mask])
 
         self.log('loss', loss)
 
@@ -82,8 +85,8 @@ class CovidCardioSpikeExperiment(pl.LightningModule):
     def validation_step(self, batch, batch_nb):
         if self.num_classes > 1:
             scores = self(batch)
-            pred = torch.argmax(scores, dim=2)
-
+            pred = torch.argmax(scores, dim=2, keepdim=True)
+            labels = torch.argmax(batch['target'], dim=2, keepdim=True)
             scores = torch.softmax(scores, 2)
         else:
             result = self(batch)
@@ -93,11 +96,11 @@ class CovidCardioSpikeExperiment(pl.LightningModule):
             result = torch.sigmoid(result)
             scores = result
             pred = (result > self.hparams.threshold).int()
-
+            labels = batch['target']
         if self.hparams.train.use_plt:
             log_image(pred, batch, batch_nb)
 
-        labels = batch['target']
+
         mask = batch['mask_bool']
 
         return {'pred': pred.detach().cpu().numpy(), 'target': labels.cpu().numpy(),
@@ -109,7 +112,7 @@ class CovidCardioSpikeExperiment(pl.LightningModule):
         for batch in outputs:
             pred, score, target, mask = batch['pred'], batch['score'], batch['target'], batch['mask']
             for i, el in enumerate(pred):
-                f1_score = metrics.f1_score(target[i][mask[i]].reshape(-1), el[mask[i]].reshape(-1), pos_label=1, average='binary')
+                f1_score = metrics.f1_score(target[i][mask[i]].reshape(-1), el[mask[i]].reshape(-1), pos_label=1, average='binary' if self.num_classes == 1 else 'micro')
                 f1_scores.append(f1_score)
 
         self.log('f1_score', np.mean(f1_scores))

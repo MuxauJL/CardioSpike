@@ -1,0 +1,77 @@
+#### general settings
+gpu_ids: [ 0 ]
+classes: ["NOCOVID", "COVID"]
+num_classes: &num_classes 5
+threshold: 0.5
+
+#### datasets
+datasets:
+  mode: ECGHeartbeatCategorization
+  train:
+    dataset_args:
+      path_to_csv: /home/malchul/work/CadrioSpike/data/pretrain/mitbih_train.csv
+    n_workers: 10
+    batch_size: 16
+    augs_args: null
+
+
+  val:
+    dataset_args:
+      path_to_csv: /home/malchul/work/CadrioSpike/data/pretrain/mitbih_test.csv
+    n_workers: 5
+    batch_size: 1
+    augs_args: null
+
+network:
+  model: SimpleCNN
+  input_channels: 1
+  output_channels: *num_classes
+  num_convs: 7
+  multiplier: 1.5
+
+# Maps output from dataset to model args
+input_keys:
+  ampl: x
+  mask: mask
+  time: time
+  ampl_diff: x_diff
+  angle: angle
+
+exp_name: ""
+#### path
+checkpoint_path: null
+
+#### training settings: learning rate scheme, loss
+train:
+
+  scheduler_params:
+    scheduler: ExponentialLR  # Registry keyword for scheduler name
+    gamma: 0.9940264484836504  # Reduces by 20
+
+  optimizer_params:
+    optimizer: AdamW
+    lr: !!float 2e-4
+    weight_decay: 0.001
+    betas: [ 0.9, 0.999 ]
+
+  loss_args:
+    criterion: CrossEntropyLoss
+
+  epoches: 500
+
+  use_plt: True
+
+  log_freq: 10
+  img_log_freq: 400
+  val_freq: 10
+  val_steps_limit: 1.0
+  train_steps_limit: 1000
+
+
+  precision: 32
+  gradient_clip_val: 0
+
+
+hydra:
+  run:
+    dir: outputs/${now:%Y-%m-%d}/${now:%H-%M-%S}_pretrain_{datasets.mode}_${exp_name}
