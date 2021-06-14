@@ -18,7 +18,7 @@ class LayerNorm(nn.Module):
 
 
 class SimpleLayerCNN(nn.Module):
-    def __init__(self, in_channel, out_channel, kernel_size=3, bias=True):
+    def __init__(self, in_channel, out_channel, kernel_size=3, bias=False):
         super().__init__()
         self.bias = bias
         self.kernel_size = kernel_size
