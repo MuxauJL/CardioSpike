@@ -14,6 +14,7 @@ def main(cfg):
         filename='model_last_{epoch}_{f1_score}',
         verbose=True,
         monitor='f1_score',
+        save_last=True,
         mode='max'
     )
 

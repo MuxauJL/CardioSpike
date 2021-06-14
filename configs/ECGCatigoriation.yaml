@@ -23,9 +23,11 @@ datasets:
     augs_args: null
 
 network:
-  model: UNet
-  n_channels: 1
-  n_classes: *num_classes
+  model: SimpleCNN
+  input_channels: 1
+  output_channels: *num_classes
+  num_convs: 15
+  multiplier: 1.2
 
 # Maps output from dataset to model args
 input_keys:
@@ -44,7 +46,7 @@ train:
 
   scheduler_params:
     scheduler: ExponentialLR  # Registry keyword for scheduler name
-    gamma: 0.9940264484836504  # Reduces by 20
+    gamma: 0.9802265618354915  # Reduces by 20
 
   optimizer_params:
     optimizer: AdamW
@@ -55,7 +57,7 @@ train:
   loss_args:
     criterion: CrossEntropyLoss
 
-  epoches: 500
+  epoches: 150
   use_negative_sampling: False
 
   use_plt: True
@@ -73,4 +75,4 @@ train:
 
 hydra:
   run:
-    dir: outputs/${now:%Y-%m-%d}/${now:%H-%M-%S}_pretrain_${datasets.mode}_${exp_name}
+    dir: outputs_pretrain/${now:%Y-%m-%d}/${now:%H-%M-%S}_pretrain_${network.model}_${datasets.mode}_${exp_name}
