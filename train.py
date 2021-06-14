@@ -21,6 +21,11 @@ def main(cfg):
     model = CovidCardioSpikeExperiment(cfg)
     if cfg.pretrained_checkpoint_path:
         load_model(model, cfg.pretrained_checkpoint_path)
+        if hasattr(model.net, 'freeze_pretrained_layers'):
+            print('FREEZING LAYER')
+            model.net.freeze_pretrained_layers()
+        else:
+            print("LAYERS NOT BE FREEZED, add freeze_pretrained_layers to your model")
 
 
     trainer = Trainer(gpus=cfg.gpu_ids, max_epochs=cfg.train.epoches, logger=logger, limit_val_batches=cfg.train.val_steps_limit, limit_train_batches=cfg.train.train_steps_limit,

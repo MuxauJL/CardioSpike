@@ -39,7 +39,8 @@ class CovidCardioSpikeExperiment(pl.LightningModule):
         return registries.SCHEDULERS.get_from_params(**args)
 
     def configure_optimizers(self):
-        params = self.net.parameters()
+        print('configure parameters')
+        params = filter(lambda p: p.requires_grad, self.net.parameters())
         optimizer = registries.OPTIMIZERS.get_from_params(**{'params': params, **self.hparams.train.optimizer_params})
 
         return {'optimizer': optimizer,

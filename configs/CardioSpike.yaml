@@ -26,8 +26,8 @@ network:
   model: SimpleCNN
   input_channels: 1
   output_channels: *num_classes
-  num_convs: 7
-  multiplier: 1.5
+  num_convs: 15
+  multiplier: 1.2
 
 # Maps output from dataset to model args
 input_keys:
