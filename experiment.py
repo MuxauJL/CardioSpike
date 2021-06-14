@@ -86,7 +86,11 @@ class CovidCardioSpikeExperiment(pl.LightningModule):
 
             scores = torch.softmax(scores, 2)
         else:
-            result = torch.sigmoid(self(batch))
+            result = self(batch)
+            mask = self.negative_sampling_mask(batch['target'], batch['mask_bool'])
+            loss = self.loss(result[mask], batch['target'][mask])
+            self.log('val_loss', loss, prog_bar=True)
+            result = torch.sigmoid(result)
             scores = result
             pred = (result > self.hparams.threshold).int()
 
