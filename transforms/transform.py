@@ -1,5 +1,7 @@
 import numpy as np
 
+from transforms.interpolation import sample_randomly
+
 MEDIAN = 624.0
 O_25 = 548.0
 O_75 = 732.0
@@ -35,6 +37,15 @@ def get_angle(data):
     data['angle'] = result
     return data
 
+def random_sample(data):
+    assert data['target'].shape[1] == 1
+    if np.random.rand() > 0.5:
+        data['time'], data['ampl'],data['target'] = sample_randomly(data['time'][:,0], data['ampl'][:,0], data['target'][:,0])
+        data['time'] = np.expand_dims(data['time'], 1)
+        data['ampl'] = np.expand_dims(data['ampl'], 1)
+        data['target'] = np.expand_dims(data['target'], 1)
+    return data
+
 def apply_iteratively(functions):
     def _inner_func(data):
         for func in functions:
@@ -48,4 +59,8 @@ def get_test_transform(opt):
 
 
 def get_train_transform(opt):
+    if opt is not None:
+        if opt.add_sampling:
+            return apply_iteratively([random_sample,norm, get_angle, norm_time, add_ampl_diff])
+
     return apply_iteratively([norm, get_angle, norm_time, add_ampl_diff])

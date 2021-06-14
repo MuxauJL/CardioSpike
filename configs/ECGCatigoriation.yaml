@@ -60,7 +60,7 @@ train:
   epoches: 150
   use_negative_sampling: False
 
-  use_plt: True
+  use_plt: False
 
   log_freq: 10
   img_log_freq: 400

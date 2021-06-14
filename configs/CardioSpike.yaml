@@ -12,7 +12,8 @@ datasets:
       path_to_csv: /home/malchul/work/CadrioSpike/data/train_split.csv
     n_workers: 10
     batch_size: 16
-    augs_args: null
+    augs_args:
+      add_sampling: True
 
 
   val:
@@ -26,8 +27,8 @@ network:
   model: SimpleCNN
   input_channels: 1
   output_channels: *num_classes
-  num_convs: 15
-  multiplier: 1.2
+  num_convs: 7
+  multiplier: 1.5
 
 # Maps output from dataset to model args
 input_keys:
@@ -58,13 +59,13 @@ train:
   loss_args:
     criterion: WeightedBCEWithLogits
     pos_weight: 6.0
-    clip: 0.0001
+    clip: null
 
   epoches: 500
-  use_negative_sampling: True
+  use_negative_sampling: False
 
 
-  use_plt: True
+  use_plt: False
 
   log_freq: 10
   img_log_freq: 400

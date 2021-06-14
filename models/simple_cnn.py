@@ -57,7 +57,7 @@ class SimpleCNN(nn.Module):
         self.last_conv = nn.Conv1d(channels[-1], self.output_channels, 5, padding=2)
 
     def freeze_pretrained_layers(self, freeze=True):
-        for layer in self.hidden_layers[:-round(self.num_convs / 3 * 2)]:
+        for layer in self.hidden_layers[1:-round(self.num_convs / 3 * 2)]:
             for param in layer.parameters():
                 param.requires_grad = False
 
