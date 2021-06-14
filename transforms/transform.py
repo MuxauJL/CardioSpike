@@ -1,4 +1,5 @@
 import numpy as np
+from scipy import signal
 
 from transforms.interpolation import sample_randomly
 
@@ -35,6 +36,11 @@ def get_angle(data):
                 np.arctan2(p2_y - p1_y, p2_x - p1_x)
     result = np.concatenate([np.array([[0.0]]), result, np.array([[0.0]])], axis=0)
     data['angle'] = result
+    return data
+
+def stft(data):
+    f, t, Zxx = signal.stft(data['ampl'], 1.0, nperseg=32)
+    data['stft'] = np.log(np.abs(Zxx))
     return data
 
 def random_sample(data):
