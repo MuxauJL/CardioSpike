@@ -29,7 +29,7 @@ network:
   output_channels: *num_classes
   start_channels: 32
   num_convs: 5
-  multiplier: 1.4
+  multiplier: 1.3
 
 # Maps output from dataset to model args
 input_keys:
