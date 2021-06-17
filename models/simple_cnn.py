@@ -114,8 +114,9 @@ class SimpleCNN(nn.Module):
         self.last_conv = nn.Conv1d(channels[-1], self.output_channels, 5, padding=2)
 
     def freeze_pretrained_layers(self, freeze=True):
-        for name, layer in self.modules():
+        for layer in self.modules():
             if isinstance(layer, StackApply):
+                print('freezing', layer)
                 layer.freeze(freeze)
 
     def forward(self, x, x_diff, time, angle, mask):

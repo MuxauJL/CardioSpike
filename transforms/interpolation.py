@@ -28,7 +28,7 @@ def sample_randomly_uniform(x, y, target=None, sample_rate=CARDIO_SPIKE_MEDIAN_S
         return new_x, new_y
 
 
-def sample_randomly(x, y, target=None, sample_rate=CARDIO_SPIKE_MEDIAN_SAMPLE):
+def sample_randomly(x, y, target=None, sample_rate=CARDIO_SPIKE_MEDIAN_SAMPLE//2):
     interpolator = CubicSpline(x, y)
     new_x = x + np.random.randn(*x.shape) * sample_rate
     new_y = interpolator(new_x)
