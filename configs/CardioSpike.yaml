@@ -70,7 +70,7 @@ train:
 
   log_freq: 10
   img_log_freq: 400
-  val_freq: 10
+  val_freq: 1
   val_steps_limit: 1.0
   train_steps_limit: 1000
 

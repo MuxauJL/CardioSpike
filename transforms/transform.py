@@ -22,6 +22,19 @@ def add_ampl_diff(data):
     data['ampl_diff'] = np.concatenate([np.array([[0.0]]), data['ampl'][1:] - data['ampl'][:-1]])
     return data
 
+
+def get_part_of_sequence(data, max_range=512):
+    len_seq = len(data['time'])
+    start_pos = np.random.randint(0, max(len_seq - max_range - 1, 1))
+    data['time'] = data['time'][start_pos: start_pos + max_range]
+    data['ampl'] = data['ampl'][start_pos: start_pos + max_range]
+    data['target'] = data['target'][start_pos: start_pos + max_range]
+    return data
+
+
+def add_noise(data, std=74/2): # Half of data std
+    data['ampl'] = data['ampl'] + np.random.randn(*data['ampl'].shape) * std
+
 # Run before norm_time
 def get_angle(data):
     data['time'] = data['time'] / TIME_NORMALIZER

@@ -4,11 +4,13 @@ from pytorch_lightning.callbacks import ModelCheckpoint, LearningRateMonitor
 from pytorch_lightning.loggers import TensorBoardLogger
 
 from experiment import CovidCardioSpikeExperiment
+from utils.fix_random import fix_random_state
 from utils.pretrained_utils import load_model
 
 
 @hydra.main(config_path="configs/CardioSpike.yaml")
 def main(cfg):
+    fix_random_state(42)
 
     logger = TensorBoardLogger("logs")
     checkpoint_callback = ModelCheckpoint(

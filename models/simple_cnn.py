@@ -2,6 +2,52 @@ import torch
 import torch.nn as nn
 
 
+class BatchApply(nn.Module):
+    def __init__(self, func):
+        super().__init__()
+        self.func = func
+
+    def forward(self, x, mask):
+        out = []
+        length = mask.sum([-1, -2]).int().to(x.device)
+        for i in range(x.shape[0]):
+            stats = self.func(x[i:i + 1][:, :, :length[i]])
+            out.append(stats)
+        return torch.cat(out, dim=0)
+
+
+class MedianPool(nn.Module):
+    def forward(self, x):
+        return torch.median(x, dim=-1, keepdim=True)[0]
+
+
+class StdPool(nn.Module):
+    def forward(self, x):
+        return torch.std(x, dim=[0, -1], keepdim=True)
+
+
+class StackApply(nn.Module):
+    CHANNELS_MULTIPLIER = 4
+
+    def __init__(self, in_features, out_features):
+        super().__init__()
+        stats = [nn.AdaptiveMaxPool1d(1), nn.AdaptiveAvgPool1d(1), StdPool(), MedianPool()]
+        self.stats = nn.ModuleList([BatchApply(stat) for stat in stats])
+        self.in_features = in_features
+        self.out_features = out_features
+        self.out_layer = nn.Conv1d(self.in_features * (self.CHANNELS_MULTIPLIER + 1), self.out_features, 1)
+
+    def forward(self, x, mask):
+        stats_output = []
+        for stat in self.stats:
+            stat_out = stat(x, mask)
+            stats_output.append(stat_out)
+        stats_output = torch.cat(stats_output, dim=1)
+        stats_output = stats_output.repeat(1, 1, x.shape[2])
+        out = torch.cat([x, stats_output], dim=1)
+        out = self.out_layer(out)
+        return out * mask
+
 class LayerNorm(nn.Module):
     "Construct a layernorm for 1d features."
 
@@ -26,6 +72,7 @@ class SimpleLayerCNN(nn.Module):
         self.conv2 = nn.Conv1d(out_channels, out_channels, kernel_size=3, padding=1, bias=bias)
         self.norm2 = LayerNorm(out_channels)
         self.act2 = nn.GELU()
+        self.additional_features = StackApply(out_channels, out_channels)
 
     def forward(self, x, mask):
         out = self.conv1(x)
@@ -36,7 +83,9 @@ class SimpleLayerCNN(nn.Module):
         out = self.conv2(out)
         out = self.norm2(out)
         out = self.act2(out)
-        out = (out * mask) + save_out
+        out = self.additional_features(out * mask, mask)
+        out = out + save_out
+
         return out
 
 
