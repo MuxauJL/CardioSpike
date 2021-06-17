@@ -26,7 +26,7 @@ network:
   model: SimpleCNN
   input_channels: 1
   output_channels: *num_classes
-  #start_channels: 16
+  start_channels: 32
   num_convs: 10
   multiplier: 1.3
 

@@ -62,6 +62,14 @@ class CovidCardioSpikeExperiment(pl.LightningModule):
                 new_mask[i] = new_mask[i] | positives_mask[i]
         return new_mask
 
+    def attend_on_bad_preds_mask(self, prediction, labels, mask, thres=0.4, min_elems=20):
+        #return torch.not_equal(prediction > 0.5, labels > 0.5) & mask.unsqueeze(2)
+        new_mask = torch.not_equal(prediction > 0.5 + thres, labels > 0.5) & torch.not_equal(prediction < 0.5 - thres, labels < 0.5) & mask.unsqueeze(2)
+        if new_mask.sum() < min_elems:
+            print('return default mask')
+            new_mask = mask
+        return new_mask
+
     def create_model(self):
         opt = self.hparams
         print('opt', opt.keys())
@@ -137,9 +145,11 @@ class CovidCardioSpikeExperiment(pl.LightningModule):
         concated_target = np.concatenate(concated_target)
 
         f1_score = metrics.f1_score(concated_target, concated_pred, pos_label=1, average='binary' if self.num_classes == 1 else 'micro')
+        f1_score_micro = metrics.f1_score(concated_target, concated_pred, pos_label=1, average='micro')
 
 
-        self.log('f1_score', f1_score)
+        self.log('f1_score', f1_score, prog_bar=True)
+        self.log('f1_score_micro', f1_score_micro, prog_bar=True)
 
     def prepare_data(self):
         mode = self.hparams.datasets.mode

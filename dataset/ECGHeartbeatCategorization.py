@@ -72,3 +72,13 @@ class ECGHeartbeatCategorization(Dataset):
         # id - B, time - BxTx1, ampl - BxTx1,  target - BxTx1, mask - BxT, mask_bool - BxT
         return result
 
+
+if __name__ == '__main__':
+    dataset = ECGHeartbeatCategorization("/home/malchul/work/CadrioSpike/data/pretrain/mitbih_train.csv")
+    print(dataset[12])
+    loader = DataLoader(dataset, batch_size=5, shuffle=True, num_workers=2, collate_fn=dataset.collate_fn)
+    for data in loader:
+        for k,v in data.items():
+            print(k, v.shape, v.max(), v.min())
+        print(data['time'] * (1 - data['mask']))
+
