@@ -67,7 +67,7 @@ class LayerNorm(nn.Module):
 
 
 class SimpleLayerCNN(nn.Module):
-    def __init__(self, in_channels, out_channels, bias=False):
+    def __init__(self, in_channels, out_channels, bias=True):
         super().__init__()
         self.conv1 = nn.Conv1d(in_channels, out_channels, kernel_size=3, padding=1, bias=bias)
         self.norm1 = LayerNorm(out_channels)
@@ -130,7 +130,7 @@ class SimpleCNN(nn.Module):
 
 class CRNN(nn.Module):
     def __init__(self, input_channels=2, output_channels=1, num_convs=10, start_channels=32, multiplier=1.3,
-                 lstm_hidden_dim=256, lstm_layers_count=1, out_channels=339):
+                 lstm_hidden_dim=339, lstm_layers_count=1, out_channels=339):
         super().__init__()
 
         self.cnn = SimpleCNN(input_channels=input_channels,
