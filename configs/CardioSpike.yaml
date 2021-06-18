@@ -38,6 +38,7 @@ input_keys:
   time: time
   ampl_diff: x_diff
   angle: angle
+  ampl_median: ampl_median
 
 exp_name: ""
 #### path

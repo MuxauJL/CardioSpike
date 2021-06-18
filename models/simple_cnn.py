@@ -99,7 +99,7 @@ class SimpleCNN(nn.Module):
         self.start_channels = start_channels
         self.num_convs = num_convs
         self.output_channels = output_channels
-        self.input_channels = input_channels + 1 + 1 + 1  # + x_diff + time + angle
+        self.input_channels = input_channels + 1 + 1 + 1 + 1  # + x_diff + time + angle
 
         channels = [self.input_channels, *[round(self.start_channels * multiplier ** i) for i in range(self.num_convs)]]
         self.channels = channels
@@ -113,8 +113,8 @@ class SimpleCNN(nn.Module):
             self.last_conv = nn.Conv1d(channels[-1], self.output_channels, 5, padding=2)
 
 
-    def forward(self, x, x_diff, time, angle, mask):
-        x = torch.cat([x, time, x_diff, angle], dim=2)
+    def forward(self, x, x_diff, time, angle, mask, ampl_median):
+        x = torch.cat([x, time, x_diff, angle, ampl_median], dim=2)
         x = x.transpose(2, 1)
         mask = mask.unsqueeze(1)
         for module in self.hidden_layers:
@@ -139,8 +139,8 @@ class CRNN(nn.Module):
                                proj_size=0, bidirectional=True, batch_first=True)
         self.fc = nn.Linear(out_channels + 2 * lstm_hidden_dim, output_channels)
 
-    def forward(self,  x, x_diff, time, angle, mask):
-        output = self.cnn(x, x_diff, time, angle, mask)
+    def forward(self,  x, x_diff, time, angle, mask, ampl_median):
+        output = self.cnn(x, x_diff, time, angle, mask, ampl_median)
         features = output
         output, (_, _) = self.bi_lstm(features)
         output = torch.cat((features, output), 2)

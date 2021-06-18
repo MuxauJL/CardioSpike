@@ -23,6 +23,18 @@ def add_ampl_diff(data):
     return data
 
 
+def add_median_normalizing(data):
+    ampl = data['ampl']
+    def window_stack(a, width=20):
+        n = a.shape[0]
+        a_padded = np.pad(a, ((width // 2, width // 2), (0, 0)), mode='symmetric')
+        return np.hstack([a_padded[i - width // 2:i + width // 2] for i in range(width // 2, width // 2 + n)])[..., None]
+
+    median = np.median(window_stack(ampl), axis=0)
+    ampl = ampl - median
+    data['ampl_median'] = ampl
+    return data
+
 def get_part_of_sequence(data, max_range=128):
     len_seq = len(data['time'])
     start_pos = np.random.randint(0, max(len_seq - max_range - 1, 1))
@@ -51,6 +63,10 @@ def get_angle(data):
     data['angle'] = result
     return data
 
+def extract_ema(data, weight=0.6):
+    timeseries = data['ampl']
+    new_timeseries = np.ma.average(timeseries, weights=weight)
+
 def stft(data):
     f, t, Zxx = signal.stft(data['ampl'], 1.0, nperseg=32)
     data['stft'] = np.log(np.abs(Zxx))
@@ -74,12 +90,14 @@ def apply_iteratively(functions):
     return _inner_func
 
 def get_test_transform(opt):
-    return apply_iteratively([norm, get_angle, norm_time, add_ampl_diff])
+    return apply_iteratively([norm, add_median_normalizing, get_angle, norm_time, add_ampl_diff])
 
 
 def get_train_transform(opt):
     if opt is not None:
         if opt.add_sampling:
-            return apply_iteratively([get_part_of_sequence, random_sample,norm, get_angle, norm_time, add_ampl_diff])
+            return apply_iteratively(
+                [get_part_of_sequence, random_sample, norm, add_median_normalizing, get_angle, norm_time,
+                 add_ampl_diff])
 
-    return apply_iteratively([get_part_of_sequence, norm, get_angle, norm_time, add_ampl_diff])
+    return apply_iteratively([get_part_of_sequence, norm, add_median_normalizing, get_angle, norm_time, add_ampl_diff])
