@@ -102,13 +102,15 @@ class SimpleCNN(nn.Module):
         self.input_channels = input_channels + 1 + 1 + 1  # + x_diff + time + angle
 
         channels = [self.input_channels, *[round(self.start_channels * multiplier ** i) for i in range(self.num_convs)]]
-
+        self.channels = channels
         self.hidden_layers = nn.ModuleList()
 
         for in_c, out_c in zip(channels[:-1], channels[1:]):
             self.hidden_layers.append(SimpleLayerCNN(in_c, out_c))
-
-        self.last_conv = nn.Conv1d(channels[-1], self.output_channels, 5, padding=2)
+        if self.output_channels == self.channels[-1]:
+            self.last_conv = lambda x: x
+        else:
+            self.last_conv = nn.Conv1d(channels[-1], self.output_channels, 5, padding=2)
 
     def freeze_pretrained_layers(self, freeze=True):
         for layer in self.hidden_layers[1:-round(self.num_convs / 3 * 2)]:
@@ -124,3 +126,28 @@ class SimpleCNN(nn.Module):
         x = self.last_conv(x)
         x = x.transpose(2, 1)
         return x
+
+
+class CRNN(nn.Module):
+    def __init__(self, input_channels=2, output_channels=1, num_convs=10, start_channels=32, multiplier=1.3,
+                 lstm_hidden_dim=256, lstm_layers_count=1, out_channels=339):
+        super().__init__()
+
+        self.cnn = SimpleCNN(input_channels=input_channels,
+                             num_convs=num_convs,
+                             output_channels=out_channels,
+                             start_channels=start_channels,
+                             multiplier=multiplier)
+        self.bi_lstm = nn.LSTM(input_size=out_channels, hidden_size=lstm_hidden_dim,
+                               num_layers=lstm_layers_count,
+                               proj_size=0, bidirectional=True, batch_first=True)
+        self.fc = nn.Linear(out_channels + 2 * lstm_hidden_dim, output_channels)
+
+    def forward(self,  x, x_diff, time, angle, mask):
+        output = self.cnn(x, x_diff, time, angle, mask)
+        features = output
+        output, (_, _) = self.bi_lstm(features)
+        output = torch.cat((features, output), 2)
+        output = self.fc(output)
+
+        return output

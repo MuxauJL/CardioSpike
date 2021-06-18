@@ -24,7 +24,7 @@ datasets:
     augs_args: null
 
 network:
-  model: SimpleCNN
+  model: CRNN
   input_channels: 1
   output_channels: *num_classes
   start_channels: 32

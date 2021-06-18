@@ -4,13 +4,14 @@ from models.BiLSTMDetector import BiLSTMDetector
 from models.UNet import UNet
 from models.losses import WeightedBCEWithLogits
 from models.optimizers.radam import RAdam
-from models.simple_cnn import SimpleCNN
+from models.simple_cnn import SimpleCNN, CRNN
 
 registry.Criterion(WeightedBCEWithLogits)
 
 registry.Model(SimpleCNN)
 registry.Model(BiLSTMDetector)
 registry.Model(UNet)
+registry.Model(CRNN)
 
 registry.Optimizer(RAdam)
 
