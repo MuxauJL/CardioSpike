@@ -33,7 +33,7 @@ if __name__ == '__main__':
     val_dataset = CardioSpikeDataset('./data/val_split.csv', frame_size=None)
     val_loader = torch.utils.data.DataLoader(val_dataset, batch_size=1,
                                              collate_fn=conv_collate_fn,
-                                             num_workers=4)
+                                             num_workers=0)
 
     val_total = 0
     val_positives = 0
