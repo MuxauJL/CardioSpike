@@ -2,11 +2,12 @@ import torch
 import registry.registries as registry
 from models.BiLSTMDetector import BiLSTMDetector
 from models.UNet import UNet
-from models.losses import WeightedBCEWithLogits
+from models.losses import WeightedBCEWithLogits, LocalBetterLoss
 from models.optimizers.radam import RAdam
 from models.simple_cnn import SimpleCNN, CRNN
 
 registry.Criterion(WeightedBCEWithLogits)
+registry.Criterion(LocalBetterLoss)
 
 registry.Model(SimpleCNN)
 registry.Model(BiLSTMDetector)

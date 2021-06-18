@@ -1,6 +1,6 @@
 import torch.nn as nn
 import torch
-
+import torch.nn.functional as F
 
 class WeightedBCEWithLogits(nn.BCEWithLogitsLoss):
     def __init__(self, weight=None, clip=None, size_average=None, reduce=None, reduction: str = 'mean', pos_weight=None):
@@ -13,3 +13,16 @@ class WeightedBCEWithLogits(nn.BCEWithLogitsLoss):
         if self.clip_min is not None:
             input = torch.clip(input, self.clip_min, self.clip_max)
         return super().forward(input, target)
+
+
+
+class LocalBetterLoss(nn.Module):
+    def forward(self, predictions, targets, mask):
+        positives_count = torch.sum(targets, dim=1) + 1
+        negatives_count = mask.sum(1).unsqueeze(1) - torch.sum(targets, dim=1)
+
+        pos_weight = negatives_count / positives_count
+        pos_weight = pos_weight.unsqueeze(2).repeat(1, targets.shape[1], 1)
+        loss = F.binary_cross_entropy_with_logits(predictions[mask], targets[mask], pos_weight=pos_weight[mask])
+
+        return loss
