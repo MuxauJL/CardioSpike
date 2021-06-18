@@ -10,7 +10,7 @@ from utils.pretrained_utils import load_model
 
 @hydra.main(config_path="configs/CardioSpike.yaml")
 def main(cfg):
-    fix_random_state(12)
+    fix_random_state(42)
 
     logger = TensorBoardLogger("logs")
     checkpoint_callback = ModelCheckpoint(
@@ -30,9 +30,9 @@ def main(cfg):
             print("LAYERS NOT BE FREEZED, add freeze_pretrained_layers to your model")
 
 
-    trainer = Trainer(gpus=cfg.gpu_ids, stochastic_weight_avg=True, max_epochs=cfg.train.epoches, logger=logger, limit_val_batches=cfg.train.val_steps_limit, limit_train_batches=cfg.train.train_steps_limit,
+    trainer = Trainer(gpus=cfg.gpu_ids, max_epochs=cfg.train.epoches, logger=logger, limit_val_batches=cfg.train.val_steps_limit, limit_train_batches=cfg.train.train_steps_limit,
                       log_every_n_steps=cfg.train.log_freq, flush_logs_every_n_steps=cfg.train.log_freq, resume_from_checkpoint=cfg.checkpoint_path, check_val_every_n_epoch=cfg.train.val_freq,
-                      precision=cfg.train.precision, gradient_clip_val=cfg.train.gradient_clip_val, deterministic=True, callbacks=[LearningRateMonitor('epoch'), checkpoint_callback])
+                      precision=cfg.train.precision, gradient_clip_val=cfg.train.gradient_clip_val, callbacks=[LearningRateMonitor('epoch'), checkpoint_callback])
 
     trainer.fit(model)
 

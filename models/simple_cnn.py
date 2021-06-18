@@ -36,16 +36,10 @@ class StackApply(nn.Module):
         self.in_features = in_features
         self.out_features = out_features
         self.out_layer = nn.Conv1d(self.in_features * (self.CHANNELS_MULTIPLIER + 1), self.out_features, 1)
-        self._freeze = False
-
-    def freeze(self, freeze=True):
-        self._freeze = freeze
 
     def forward(self, x, mask):
         stats_output = []
         for stat in self.stats:
-            if self._freeze:
-                x = x.detach()
             stat_out = stat(x, mask)
             stats_output.append(stat_out)
         stats_output = torch.cat(stats_output, dim=1)
@@ -114,10 +108,9 @@ class SimpleCNN(nn.Module):
         self.last_conv = nn.Conv1d(channels[-1], self.output_channels, 5, padding=2)
 
     def freeze_pretrained_layers(self, freeze=True):
-        for layer in self.modules():
-            if isinstance(layer, StackApply):
-                print('freezing', layer)
-                layer.freeze(freeze)
+        for layer in self.hidden_layers[1:-round(self.num_convs / 3 * 2)]:
+            for param in layer.parameters():
+                param.requires_grad = False
 
     def forward(self, x, x_diff, time, angle, mask):
         x = torch.cat([x, time, x_diff, angle], dim=2)

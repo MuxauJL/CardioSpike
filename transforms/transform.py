@@ -23,7 +23,7 @@ def add_ampl_diff(data):
     return data
 
 
-def get_part_of_sequence(data, max_range=256):
+def get_part_of_sequence(data, max_range=512):
     len_seq = len(data['time'])
     start_pos = np.random.randint(0, max(len_seq - max_range - 1, 1))
     data['time'] = data['time'][start_pos: start_pos + max_range]
