@@ -11,7 +11,7 @@ datasets:
     dataset_args:
       path_to_csv: /home/malchul/work/CadrioSpike/data/train_split.csv
     n_workers: 10
-    batch_size: 16
+    batch_size: 32
     augs_args:
       add_sampling: True
 

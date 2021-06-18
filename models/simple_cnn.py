@@ -29,18 +29,21 @@ class StdPool(nn.Module):
 class StackApply(nn.Module):
     CHANNELS_MULTIPLIER = 4
 
-    def __init__(self, in_features, out_features):
+    def __init__(self, in_features, out_features, inner_layers=16):
         super().__init__()
-        stats = [nn.AdaptiveMaxPool1d(1), nn.AdaptiveAvgPool1d(1), StdPool(), MedianPool()]
-        self.stats = nn.ModuleList([BatchApply(stat) for stat in stats])
         self.in_features = in_features
         self.out_features = out_features
-        self.out_layer = nn.Conv1d(self.in_features * (self.CHANNELS_MULTIPLIER + 1), self.out_features, 1)
+        stats = [nn.AdaptiveMaxPool1d(1), nn.AdaptiveAvgPool1d(1), StdPool(), MedianPool()]
+        self.stats = nn.ModuleList([BatchApply(stat) for stat in stats])
+        self.stats_downsample = nn.ModuleList([nn.Conv1d(self.in_features, inner_layers, 1)  for stat in stats])
+
+
+        self.out_layer = nn.Conv1d(self.in_features + (inner_layers * self.CHANNELS_MULTIPLIER), self.out_features, 1)
 
     def forward(self, x, mask):
         stats_output = []
-        for stat in self.stats:
-            stat_out = stat(x, mask)
+        for stat, stat_conv in zip(self.stats, self.stats_downsample):
+            stat_out = stat_conv(stat(x, mask))
             stats_output.append(stat_out)
         stats_output = torch.cat(stats_output, dim=1)
         stats_output = stats_output.repeat(1, 1, x.shape[2])

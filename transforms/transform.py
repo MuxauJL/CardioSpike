@@ -80,6 +80,6 @@ def get_test_transform(opt):
 def get_train_transform(opt):
     if opt is not None:
         if opt.add_sampling:
-            return apply_iteratively([random_sample,norm, get_angle, norm_time, add_ampl_diff])
+            return apply_iteratively([get_part_of_sequence, random_sample,norm, get_angle, norm_time, add_ampl_diff])
 
-    return apply_iteratively([norm, get_angle, norm_time, add_ampl_diff])
+    return apply_iteratively([get_part_of_sequence, norm, get_angle, norm_time, add_ampl_diff])
