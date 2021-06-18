@@ -3,6 +3,8 @@ import pandas as pd
 import torch
 import numpy as np
 
+MEDIAN = 620.
+STD = 303.692598
 
 class CardioSpikeDataset(Dataset):
     def __init__(self, path_to_csv, frame_size=None):
@@ -29,13 +31,17 @@ class CardioSpikeDataset(Dataset):
             if data_size > self.frame_size:
                 end_pos = np.random.randint(self.frame_size, data_size)
                 data_by_id = data_by_id[end_pos - self.frame_size: end_pos]
-        x = torch.tensor(data_by_id.x.to_numpy())
+        x = (torch.tensor(data_by_id.x.to_numpy()) - MEDIAN) / STD
         y = torch.tensor(data_by_id.y.to_numpy())
         t = data_by_id.time.to_numpy()
         time_diff = torch.zeros(len(t))
         for i in range(1, len(t)):
             time_diff[i] = t[i] - t[i - 1]
         return torch.stack((time_diff, x), 1), y
+
+    def get_dataframe_by_index(self, index):
+        data_by_id = self.data[self.data.id == self.idx_to_id[index]]
+        return data_by_id
 
 
 def collate_fn(batched_data):

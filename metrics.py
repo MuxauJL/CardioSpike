@@ -1,6 +1,5 @@
 import torch
 from sklearn.metrics import f1_score
-import numpy as np
 
 
 def binary_classification_results(prediction, ground_truth):

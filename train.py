@@ -2,9 +2,7 @@ import os
 from shutil import copy2
 from torch.utils.tensorboard import SummaryWriter
 import numpy as np
-import matplotlib.pyplot as plt
 import torch
-from torch.utils.data import SubsetRandomSampler
 import torch.nn as nn
 import torch.optim as optim
 
@@ -17,16 +15,6 @@ device = 'cuda:0'
 seed = 42
 np.random.seed(seed)
 torch.manual_seed(seed)
-
-
-def vis_time_series_by_id(data, id):
-    time_series = data[data.id == id]
-    time_series_positive = time_series[time_series.y == 1]
-    plt.figure(figsize=(15, 7))
-    plt.plot(time_series.time, time_series.x, color='green')
-    plt.scatter(time_series_positive.time, time_series_positive.x, color='red')
-    plt.grid(True)
-    plt.show()
 
 
 def compute_loss(predictions, targets):
@@ -49,7 +37,7 @@ def compute_loss(predictions, targets):
 
 def train_model(model, train_loader, val_loader, optimizer, num_epochs=1, scheduler=None, exp_name=''):
     experiment_path = './exps/' + exp_name
-    os.makedirs(experiment_path, exist_ok=True)
+    os.makedirs(experiment_path)
     for file in os.listdir('.'):
         if '.py' in file:
             copy2(file, experiment_path)
@@ -146,30 +134,24 @@ def train_model(model, train_loader, val_loader, optimizer, num_epochs=1, schedu
 if __name__ == '__main__':
     batch_size = 46
     frame_size = 64
-    train_dataset = CardioSpikeDataset('./data/train.csv', frame_size=frame_size)
-    val_dataset = CardioSpikeDataset('./data/train.csv', frame_size=None)
-    indices = np.arange(len(train_dataset))
-    np.random.shuffle(indices)
-
-    validation_fraction = .2
-    val_split = int(np.floor(validation_fraction * len(train_dataset)))
-    val_indices, train_indices = indices[:val_split], indices[val_split:]
-
-    train_sampler = SubsetRandomSampler(train_indices)
-    val_sampler = SubsetRandomSampler(val_indices)
+    train_dataset = CardioSpikeDataset('./data/train_split.csv', frame_size=frame_size)
+    val_dataset = CardioSpikeDataset('./data/val_split.csv', frame_size=None)
     train_loader = torch.utils.data.DataLoader(train_dataset, batch_size=batch_size,
-                                               sampler=train_sampler, collate_fn=conv_collate_fn,
-                                               num_workers=4)
+                                               collate_fn=conv_collate_fn,
+                                               shuffle=True,
+                                               num_workers=0)
     val_loader = torch.utils.data.DataLoader(val_dataset, batch_size=1,
-                                             sampler=val_sampler, collate_fn=conv_collate_fn,
-                                             num_workers=4)
+                                             collate_fn=conv_collate_fn,
+                                             num_workers=0)
 
-    model = CRNN(lstm_hidden_dim=256, lstm_layers_count=1).cuda()
-    lr = [1e-4, 9e-5]
-    exp_names = ['crnn_10_256_from_scratch', 'crnn_10_256_finetune']
-    num_epochs = [91, 12]
+    model = CRNN(lstm_hidden_dim=339, lstm_layers_count=1).cuda()
+    lr = [1e-4, 5e-5]
+    weight_decay = [1e-3, 1e-4]
+    exp_names = ['crnn_10_339_from_scratch', 'crnn_10_339_finetune']
+    num_epochs = [100, 10]
     for train_step in range(2):
-        optimizer = optim.AdamW(model.parameters(), lr=lr[train_step], weight_decay=1e-3)
+        optimizer = optim.AdamW(model.parameters(), lr=lr[train_step],
+                                weight_decay=weight_decay[train_step])
         scheduler = optim.lr_scheduler.ExponentialLR(optimizer, gamma=0.995405417351527)
 
         loss_history, train_history, val_history = train_model(model, train_loader, val_loader, optimizer,
