@@ -32,7 +32,7 @@ def main(cfg):
 
     trainer = Trainer(gpus=cfg.gpu_ids, max_epochs=cfg.train.epoches, logger=logger, limit_val_batches=cfg.train.val_steps_limit, limit_train_batches=cfg.train.train_steps_limit,
                       log_every_n_steps=cfg.train.log_freq, flush_logs_every_n_steps=cfg.train.log_freq, resume_from_checkpoint=cfg.checkpoint_path, check_val_every_n_epoch=cfg.train.val_freq,
-                      precision=cfg.train.precision, deterministic=True, gradient_clip_val=cfg.train.gradient_clip_val, callbacks=[LearningRateMonitor('epoch'), checkpoint_callback])
+                      precision=cfg.train.precision, deterministic=False, gradient_clip_val=cfg.train.gradient_clip_val, callbacks=[LearningRateMonitor('epoch'), checkpoint_callback])
 
     trainer.fit(model)
 

@@ -104,21 +104,27 @@ class SimpleCNN(nn.Module):
         channels = [self.input_channels, *[round(self.start_channels * multiplier ** i) for i in range(self.num_convs)]]
         self.channels = channels
         self.hidden_layers = nn.ModuleList()
-
+        self.mapping = nn.ModuleList()
         for in_c, out_c in zip(channels[:-1], channels[1:]):
             self.hidden_layers.append(SimpleLayerCNN(in_c, out_c))
-        if self.output_channels == self.channels[-1]:
+            self.mapping.append(nn.Conv1d(out_c, start_channels, kernel_size=1))
+
+        conv_channels = len(channels[1:]) * start_channels
+        if self.output_channels == conv_channels:
             self.last_conv = lambda x: x
         else:
-            self.last_conv = nn.Conv1d(channels[-1], self.output_channels, 5, padding=2)
+            self.last_conv = nn.Conv1d(conv_channels, self.output_channels, 5, padding=2)
 
 
     def forward(self, x, x_diff, time, angle, mask, ampl_median):
         x = torch.cat([x, time, x_diff, angle, ampl_median], dim=2)
         x = x.transpose(2, 1)
         mask = mask.unsqueeze(1)
-        for module in self.hidden_layers:
+        out_list = []
+        for module, mapping in zip(self.hidden_layers, self.mapping):
             x = module(x, mask)
+            out_list.append(mapping(x))
+        x = torch.cat(out_list, dim=1)
         x = self.last_conv(x)
         x = x.transpose(2, 1)
         return x
@@ -126,7 +132,7 @@ class SimpleCNN(nn.Module):
 
 class CRNN(nn.Module):
     def __init__(self, input_channels=2, output_channels=1, num_convs=10, start_channels=32, multiplier=1.3,
-                 lstm_hidden_dim=339, lstm_layers_count=1, out_channels=339):
+                 lstm_hidden_dim=320, lstm_layers_count=1, out_channels=320):
         super().__init__()
 
         self.cnn = SimpleCNN(input_channels=input_channels,
