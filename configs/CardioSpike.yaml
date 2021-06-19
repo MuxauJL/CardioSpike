@@ -23,6 +23,15 @@ datasets:
     batch_size: 1
     augs_args: null
 
+  test:
+    dataset_args:
+      path_to_csv: /home/malchul/work/CadrioSpike/data/test.csv
+      target_column: null
+    n_workers: 5
+    batch_size: 1
+    augs_args: null
+
+
 network:
   model: CRNN
   input_channels: 1
