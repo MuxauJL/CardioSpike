@@ -1,3 +1,4 @@
+import random
 from collections import defaultdict
 
 import numpy as np
@@ -9,7 +10,7 @@ from torch.utils.data.dataloader import default_collate, DataLoader
 
 
 class CardioSpikeDataset(Dataset):
-    def __init__(self, path_to_csv, transforms=None, id_column='id', time_column='time', x_column='x', target_column='y'):
+    def __init__(self, path_to_csv, transforms=None, id_column='id', time_column='time', x_column='x', target_column='y', min_len=None):
         self.transforms = transforms
         self.target_column = target_column
         self.x_column = x_column
@@ -20,6 +21,7 @@ class CardioSpikeDataset(Dataset):
         self.data = pd.read_csv(path_to_csv)
 
         self.ids = self.get_ids(self.data)
+        self.min_len = min_len
 
     # Extract pandas rows by same id and sort it by time
     def get_series_from_data(self, data, idx):
@@ -32,7 +34,7 @@ class CardioSpikeDataset(Dataset):
     def conver_to_dict(self, series_from_data):
         id = series_from_data[self.id_column]
         target = np.expand_dims(series_from_data[self.target_column].to_numpy(), 1)
-        assert np.all(id == list(id)[0])
+        assert np.all(id == list(id)[0]) or self.min_len
         id = int(id[0])
         time = np.expand_dims(series_from_data[self.time_column].to_numpy(), 1)
         ampl = np.expand_dims(series_from_data[self.x_column].to_numpy(), 1)
@@ -45,6 +47,11 @@ class CardioSpikeDataset(Dataset):
     def __getitem__(self, index):
         mapped_index = self.ids[index]
         data_by_id = self.get_series_from_data(self.data, mapped_index)
+        if self.min_len:
+            while len(data_by_id) < self.min_len:
+                additional_data = self.get_series_from_data(self.data, random.randint(0, len(self))).copy()
+                additional_data.time += data_by_id.time.max() + 624
+                data_by_id = data_by_id.append(additional_data, ignore_index=True)
         data_by_id = self.conver_to_dict(data_by_id)
         if self.transforms is not None:
             data_by_id = self.transforms(data_by_id)
