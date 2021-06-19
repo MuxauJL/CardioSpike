@@ -1,0 +1,70 @@
+gpu_ids:
+- 0
+classes:
+- NOCOVID
+- COVID
+num_classes: 1
+threshold: 0.5
+datasets:
+  mode: CardioSpike
+  train:
+    dataset_args:
+      path_to_csv: /home/malchul/work/CadrioSpike/data/train_split.csv
+    n_workers: 10
+    batch_size: 32
+    augs_args:
+      add_sampling: true
+  val:
+    dataset_args:
+      path_to_csv: /home/malchul/work/CadrioSpike/data/val_split.csv
+    n_workers: 5
+    batch_size: 1
+    augs_args: null
+  test:
+    dataset_args:
+      path_to_csv: /home/malchul/work/CadrioSpike/data/test.csv
+      target_column: null
+    n_workers: 5
+    batch_size: 1
+    augs_args: null
+network:
+  model: CRNN
+  input_channels: 1
+  output_channels: 1
+  start_channels: 32
+  num_convs: 10
+  multiplier: 1.3
+input_keys:
+  ampl: x
+  mask: mask
+  time: time
+  ampl_diff: x_diff
+  angle: angle
+exp_name: ''
+pretrained_checkpoint_path: null
+checkpoint_path: /home/malchul/work/CadrioSpike/outputs_finetune/2021-06-19/14-19-22_/logs/default/version_0/checkpoints/model_last_epoch7_f1_score0.8737755417823792.ckpt
+train:
+  scheduler_params:
+    scheduler: ExponentialLR
+    gamma: 0.995405417351527
+  optimizer_params:
+    optimizer: Adam
+    lr: 0.0005
+    weight_decay: 0.0
+    betas:
+    - 0.9
+    - 0.999
+  loss_args:
+    criterion: WeightedBCEWithLogits
+    pos_weight: 6.0
+    clip: null
+  epoches: 500
+  use_negative_sampling: false
+  use_plt: false
+  log_freq: 10
+  img_log_freq: 400
+  val_freq: 1
+  val_steps_limit: 1.0
+  train_steps_limit: 1000
+  precision: 32
+  gradient_clip_val: 0
