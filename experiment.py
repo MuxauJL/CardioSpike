@@ -158,6 +158,44 @@ class CovidCardioSpikeExperiment(pl.LightningModule):
         self.log('f1_score', f1_score, prog_bar=True)
         self.log('f1_score_micro', f1_score_micro, prog_bar=True)
 
+    def predict_step(self, batch, batch_idx: int, dataloader_idx):
+        def extract_int_numpy(tensor):
+            return tensor.detach().cpu().int().numpy()
+
+        if self.num_classes > 1:
+            scores = self(batch)
+            pred = torch.argmax(scores, dim=2, keepdim=True)
+            scores = torch.softmax(scores, 2)
+        else:
+            result = self(batch)
+            if self.hparams.train.use_negative_sampling:
+                mask = self.negative_sampling_mask(batch['target'], batch['mask_bool'])
+            else:
+                mask = batch['mask_bool']
+            result = torch.sigmoid(result)
+            scores = result
+            pred = (result > self.hparams.threshold).int()
+
+
+        log_image(result=extract_int_numpy(pred), target=extract_int_numpy(batch['target']), time=extract_int_numpy(batch['time_unormalized']), ampl=extract_int_numpy(batch['ampl_unormalized']), id=batch["id"])
+
+
+        mask = batch['mask_bool']
+
+        return {'pred': pred.detach().cpu().numpy(), 'score': scores.detach().cpu().numpy(), 'mask': batch['mask_bool'].cpu().numpy(), 'id': batch['id'], 'time': batch['time_unormalized']}
+    def on_predict_epoch_end(self, results):
+        dataframe = self.test_dataset.get_dataframe()
+        dataframe = dataframe.copy()
+        dataframe['y'] = 0
+        counts = 0
+        for result in results[0]:
+            id = result['id'].item()
+            for pred, time in zip(result['pred'].reshape(-1), result['time'].reshape(-1)):
+                counts += 1
+                dataframe.loc[(dataframe.id == id) & (dataframe.time == round(time.item())), 'y'] = pred
+
+        dataframe.to_csv('submission.csv', index=False)
+        print(len(dataframe), counts)
     def prepare_data(self):
         mode = self.hparams.datasets.mode
 
@@ -168,6 +206,10 @@ class CovidCardioSpikeExperiment(pl.LightningModule):
         train_params = self.hparams.datasets.train
         train_transform = get_train_transform(train_params.augs_args)
         self.train_dataset = create_dataset(mode, train_params.dataset_args, train_transform)
+
+        test_params = self.hparams.datasets.test
+        test_transform = get_test_transform(test_params.augs_args)
+        self.test_dataset = create_dataset(mode, test_params.dataset_args, test_transform)
 
     def val_dataloader(self):
         val_params = self.hparams.datasets.val
@@ -184,3 +226,11 @@ class CovidCardioSpikeExperiment(pl.LightningModule):
                           shuffle=True,
                           drop_last=True,
                           num_workers=train_params.n_workers, collate_fn=self.val_dataset.collate_fn)
+
+    def predict_dataloader(self):
+        test_params = self.hparams.datasets.test
+        return DataLoader(self.test_dataset,
+                          batch_size=1,
+                          shuffle=False,
+                          drop_last=False,
+                          num_workers=1, collate_fn=self.test_dataset.collate_fn)

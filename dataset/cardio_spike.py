@@ -28,11 +28,17 @@ class CardioSpikeDataset(Dataset):
     def get_ids(self, data):
         return list(data[self.id_column].unique())
 
+    def get_dataframe(self):
+        return self.data.copy()
+
     # Convert pandas series to dict
     def conver_to_dict(self, series_from_data):
         id = series_from_data[self.id_column]
-        target = np.expand_dims(series_from_data[self.target_column].to_numpy(), 1)
-        assert np.all(id == list(id)[0])
+        if self.target_column:
+            target = np.expand_dims(series_from_data[self.target_column].to_numpy(), 1)
+        else:
+            target = np.zeros_like(np.expand_dims(series_from_data[self.x_column].to_numpy(), 1))
+        assert np.all(id == list(id)[0]) or self.min_len
         id = int(id[0])
         time = np.expand_dims(series_from_data[self.time_column].to_numpy(), 1)
         ampl = np.expand_dims(series_from_data[self.x_column].to_numpy(), 1)
